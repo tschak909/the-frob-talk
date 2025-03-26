@@ -1,0 +1,1203 @@
+#+title: THE FROB: An Atari 2600 GameDev System for an Apple ][
+#+author: Thomas Cherryhomes
+#+email: thom.cherryhomes@gmail.com
+
+* Purpose
+
+- Give a Quick Introduction to GameDev Systems
+
+- Talk a bit about the history of The Frob
+
+- Give In-Depth Demonstration of The Frob, and its capabilities
+
+* How Were Games Developed For the 2600?
+
+- Target system, Atari VCS (CX2600) used 6507 Microprocessor
+
+- Method of loading software was via the cartridge port.
+  
+- It had no I/O other than the console switches and the joystick ports.
+
+- So it was the same as developing software for e.g. a traffic light controller.
+  
+** The Familiar Process
+
+- Think
+
+- Write source code.
+
+- Assemble
+
+- Load
+
+- Burn onto EPROM
+  
+- Place in Target System
+
+- Debug using a monitor
+  (optionally with ICE)
+
+- Repeat until manager beats you, and you ship it.
+  
+** Anatomy of a Microprocessor Development System
+
+- Editor
+  
+- Assembler
+
+- Loader
+
+- Debugger
+
+** Editor
+
+- Write the software.
+
+- Could be line or screen oriented
+
+- Produces Source Code
+
+** Assembler
+
+- Translate assembly instructions
+  into machine instructions
+
+- Produce a relative or absolute binary
+
+- Different Assembler programs
+  Target different processors.
+
+** Loader
+
+- Translate a relative binary
+  into an absolute binary
+  to run on target system.
+
+- Relative binaries can be loaded
+  to different addresses
+  to address e.g. running with a debug monitor
+  or to produce a release binary.
+  
+** Debugger
+
+- Resident in memory of either target or development system
+
+- Can examine target system memory, registers, and state
+
+- Can provide instruction disassembly.
+
+- Can change (patch) target system memory
+
+- Activation by Breakpoint, interrupts, or instructions.
+
+- Simplest is resident on target system.
+
+- Most complex is in-circuit-emulator (ICE) hardware
+  that replaces CPU on target device.
+  
+** Examples of Microprocessor Development Systems
+
+- Options Available as of October 1982
+
+*** ATARI in-house development
+
+- Done by Consumer Entertainment Division (CED)
+
+- Editor, Assembler, and Loader tasks done on PDP-11
+
+- Downloaded to modified Atari VCS with ICE attached
+  via the engineer's terminal's AUX port.
+
+- ROM simulation done on modified VCS
+
+- Debugging done via HP 1611A logic analyzer
+  
+*** Sluggo 1 and 2 Development Boards (Avalon-Hill in-house)
+
+- Developed by Rebecca Heineman for Avalon Hill
+
+- 4K of SRAM (2x6116 2Kx8) mapped into Language Card space
+
+- Umbilicus to cartridge slug for VCS
+
+- Editor, Assembler, Loader run on Apple ][
+
+- No debugger or ICE.
+
+- Garry Kitchen did similar card for Space Jockey development
+
+*** CommaVid (Computer Magic) MagiCard
+
+- A target-only development system
+
+- Available to end-users for $49.95
+
+- Machine Language monitor only.
+
+- Used keyboard controllers for hex input
+
+- Cassette interface schematics provided
+
+- Includes Conway's Game of Life as sample program
+
+*** Intel MDS-800
+
+- Evolution of the Intel Intellec Systems
+
+- Single or Double Density floppy drives (256K or 512K) 
+
+- Could run ISIS-II or CP/M
+  (was the official Distribution version of CP/M)
+
+- Meant for Intel 8080 and later 8085 development
+  but you can run 6502 assemblers e.g. in CP/M
+
+- Typical configuration price:
+  $3695 for a dual drive double density system
+  With EPROM burner and ICE.
+
+- Not available to end-users
+
+*** FutureData GenRad
+
+- $20,000 for a system with 6502 ICE, EPROM, and dual 1 megabyte disk storage
+
+- Text Editor, Assemblers, Loader, Debugger with ICE
+
+- Used by Gencomp (aka GCC) to develop titles for Warner Communications to be sold via ATARI.
+  Also used by GCC for coin-op titles and mod-kits.
+
+*** HP 64000
+
+- High end development system
+
+- Integrated Editor, Assemblers, Loader, and Debugger
+
+- ICE pods for many different processors, including 6502.
+
+- EPROM Burner and simulators
+  
+- C and Pascal compilers available
+
+- Used e.g. by Coleco for ColecoVision and Adam development.
+
+ - $30,000 for a single 64000 with ICE and EPROM functionality
+
+*** The Frob
+
+- Produced by Frobco (a dba of Pacific Polytechnical Corp)
+
+- Apple ][ Expansion Card containing 4K of SRAM and bi-directional registers
+
+- Example EXPLORER software lab demonstrating VCS registers
+
+- Program loader, saver; embeddable debugger and monitor.
+
+- Source code for all tools in both disk and printed form.
+
+- You provide your own assembler, and editor.
+
+- $495 for card, disk, manual.
+
+- Frob EPROM burner optionally available.
+
+- Versions for ATARI 5200, and ColecoVision development also made
+
+* Looking at the Frob
+
+** Frob-26 Card
+
+- Two 2Kx8 static RAM chips
+
+- Decoding Logic
+
+- Custom logic implementing bi-directional registers
+
+- Fits in any Apple ][ slot except Slot 0.
+
+** Frob-26 Cartridge Adapter
+
+- 24-pin Socket for EPROM or Frob Cable
+
+- 74LS04 Hex Inverter for inverting Chip Select signal
+
+- Small Jellybean cap for filtering
+
+** Frob Cable
+
+- 24 pin DIP socketed cable
+
+- Connects the Cartridge Adapter with the Frob Card
+
+** The Frob: A Conoisseur's Guide (Manual)
+
+- The Operations manual for the Frob
+
+- Covered Topics:
+
++ Hardware Installation
++ Hardware Description
++ Using the Frob Explorer to understand the VCS
++ Using Frob software tools, FLOAD, FSAVE, PMOVE, FMON, AMON
++ Source Code Listings for Everything
+
+** FROB-26 Disk "Standard Release V1.3"
+
+- Copyright 1983 by Frobco
+
+- Released March 1983
+
+- Disk Catalog:
+
+#+begin_src 
+
+  DISK VOLUME 254
+
+*A 002 HELLO                         
+*A 052 AMON                          
+*T 021 FMON                          
+*B 003 FMON.OBJ                      
+*T 009 PMOVE                         
+*B 002 PMOVE.OBJ                     
+*T 106 EXPLORER                      
+*B 018 EXPLOR.OBJ                    
+*T 071 XCONTROL                      
+*A 004 EXPLOR                        
+*B 013 XCONTROL.OBJ                  
+*A 004 FSAVE                         
+*A 008 FLOAD                         
+
+#+end_src
+
+* Installing the Frob
+
+** Attaching the Frob Cable
+
+- Covered in Chapter 4 of Conoisseur's Guide
+  
+- Attaches to Cartridge 24-pin EPROM socket.
+
+- Attaches to Frob 24-pin EPROM socket
+
+** Inserting Frob-26 Card into Apple ][
+
+- Recommended slot is Slot 2, but can be in any non-zero slot
+
+- Run cable out back
+
+** Inserting Frob-26 Cartridge Adapter into VCS
+
+- Component side facing back, cable facing up
+
+** Inserting Frob-26 Disk
+
+- Boots into DOS 3.3 environment with FROB tools.
+
+* The Frob Explorer
+
+- Shows Status of VCS Registers
+
+- You can change them.
+
+- ...watch their effects!
+
+- ...and learn how the VCS works!
+
+** Loading from the Frob Disk
+
+#+begin_src
+] RUN EXPLOR
+#+end_src
+
+- EXPLOR loads EXPLORER.OBJ0 into Frob memory for VCS
+
+- EXPLOR also loads XCONTROL.OBJ0 into Apple2 for control of VCS
+
+** Starting Explorer
+
+- Frob slot must be specified
+
+#+begin_src
+PROGRAM TO LOAD THE FROB EXPLORER
+PLEASE ENTER FROB SLOT NUMBER (1-7):2
+#+end_src
+
+- PMOVE is loaded into $0300
+  and used to load EXPLORER.OBJ0 into Frob memory at $C200
+
+- $C0A0 is set to $30 to:
+  Give control to the VCS ($10)
+  Turn on Bi-Directional Port for Debug comms ($20)
+  
+- Once loaded, EXPLOR asks to turn on VCS and press RETURN
+
+- XCONTROL talks to EXPLORER to get VCS state
+
+#+begin_src
+       FROB EXPLORER CONTROL SCREEN
+ENABLE:0C   (PUT 40 HERE FOR SCREEN2)
+PLAYER1:COLOR 82 VERT 14 HORZ 30 FLP 00
+    IMAGE: FE 7F 63 62 7C 78 60 F2
+    SOUND: A:00 B:00 C:00
+PLAYER2:COLOR 00 VERT 1E HORZ 30 FLP 00
+    IMAGE: FE 7F 63 62 7C 78 60 F6
+    SOUND: A:00 B:00 C:00
+BACKGROUND COLOR EA  OBJECT COLOR 64
+OBJECT A IMAGE: 18 24 42 42 7E 42 42 CE
+OBJECT B IMAGE: FE 61 61 7E 7E 61 61 FE
+OBJECT C IMAGE: 7E FF FE F0 F0 FE FF 7E
+REG03:00 P1VMODE:00 P2VMODE:00 FVMODE:05
+P1HRES:00 P2HRES:00 S1HRES:00 S2HRES:00
+S3HRES:00 S3SHOT:00 S3HORZ:00 P1DELAY:00
+P2DELAY:00 REG27:00 S1CONT:00 S2CONT:00
+HZSCRL:00 NOINC:00 COLRES:00 REG2D:00
+REG2E:00 REG2F:00
+GENERAL WRITE LOC:0081 VAL:00  READ=2A
+READ ONLY LOCATIONS WITH MASK:81
+REG30:00 REG31:00 REG32:00 REG33:00
+REG34:00 REG35:00 REG36:00 REG37:00
+REG38:00 REG39:00 REG3A:00 REG3B:00
+REG3C:00 REG3D:00 REG3E:00 REG3F:00
+#+end_src
+
+** Interacting with Explorer
+
+- Left/Right Arrow <- -> keys
+
+- ; is up
+
+- / is down
+
+#+begin_src
+    ;
+ <-   ->
+    / 
+#+end_src 
+
+- Use keys to position over hex number fields
+
+- Enter new hex values (0-F) with keyboard.
+  
+** Changing Color Registers
+
+- Background color is currently EA. Very hard to see.
+
+- Move cursor over EA, change to 00 to make black
+
+- Color changes immediately on VCS.
+
+#+CAPTION: Hue (upper nibble) values for any Color Register
+| Hex | Hue           |
+|-----+---------------|
+|  00 | Black         |
+|  10 | Gold          |
+|  20 | Orange        |
+|  30 | Bright Orange |
+|  40 | Pink          |
+|  50 | Purple        |
+|  60 | Purple-Blue   |
+|  70 | Blue          |
+|  80 | Medium Blue   |
+|  90 | Light Blue    |
+|  A0 | Torquoise     |
+|  B0 | Green Blue    |
+|  C0 | Green         |
+|  D0 | Yellow Green  |
+|  E0 | Orange Green  |
+|  F0 | Light Orange  |
+
+(Hue values are for NTSC displays)
+
+#+CAPTION: Luminance (lower nibble) values for any color register
+| Hex | Luminance   |
+|-----+-------------|
+|  00 | Darkest     |
+|  02 |             |
+|  04 |             |
+|  06 |             |
+|  08 | Medium Grey |
+|  0A |             |
+|  0C |             |
+|  0E | White       |
+
+** Changing what is displayed on Explorer kernel
+
+#+CAPTION: Enable bit values shown in Chapter 8
+
+| Bit | Description                   |
+|-----+-------------------------------|
+|   0 | Player 1                      |
+|   1 | Player 2                      |
+|   2 | Object A                      |
+|   3 | Object B                      |
+|   4 | Object C                      |
+|   5 | Not used                      |
+|   6 | Show Screen 2                 |
+|   7 | 1 = Display every other frame |
+
+** Changing Player 1 Image
+
+- Reference EXPLORER listing address F170 PART2
+
+- Set Enable to 03 to enable player 1 and 2
+
+- Set PLAYER1 IMAGE to:
+  18 3C 7E DB FF 5A 81 42
+
+Some notes:
+
+- This display kernel, assumes players are 8 lines tall.
+
+- Display kernel updates every two scanlines. (96 lines effective resolution)
+
+#+begin_src
+ UpprLowr
+ 84218421
+|...XX...| $18
+|..XXXX..| $3C
+|.XXXXXX.| $7E
+|XX.XX.XX| $DB
+|XXXXXXXX| $FF
+|.X.XX.X.| $5A
+|X......X| $81
+|.X....X.| $42
+#+end_src 
+
+For Each line:
+
+- Player image is being read from RAM
+
+- Sent to Player register P1IMAG (GRP0 in ATARI docs)
+
+- Player image cleared after last line sent
+
+- Code was cribbed from COMBAT.
+
+** Horizontal Motion
+
+- Player is moving to the left, why?
+
+- P1HORZ, P2HORZ (HMP0, HMP1 in ATARI docs) set to 30
+
+- Can be stopped by setting to 00
+
+- Only upper nibble is used,
+  and is treated as signed value
+  from +7 (left) to -8 (right)
+
+#+CAPTION: P1HORZ, P2HORZ (HMP0, HMP1) Values
+
+| Hex | Number of clocks    |
+|-----+---------------------|
+|  70 | move left 7 clocks  |
+|  60 | move left 6 clocks  |
+|  50 | move left 5 clocks  |
+|  40 | move left 4 clocks  |
+|  30 | move left 3 clocks  |
+|  20 | move left 2 clocks  |
+|  10 | move left 1 clock   |
+|  00 | No motion           |
+|  F0 | move right 1 clock  |
+|  E0 | move right 2 clocks |
+|  D0 | move right 3 clocks |
+|  C0 | move right 4 clocks |
+|  B0 | move right 5 clocks |
+|  A0 | move right 6 clocks |
+|  90 | move right 7 clocks |
+|  80 | move right 8 clocks |
+
+- Any horizontal motion values are applied when
+  HZSCRL (HMOVE in ATARI docs!) is strobed.
+  COMBAT does this at beginning of displayed frame
+  But it can be done at the beginning of any line.
+
+** Horizontal Motion Reset
+
+- Primary method of setting coarse object position.
+  
+- used to set horizontal position of object in 15 clock increments.
+
+- Is why there are Horizontal Motion registers
+
+- Object immediately starts outputting on line when reset
+
+- Set P1HORZ (HMP0) to 00 to stop motion.
+  
+- Set P1HRES (RESP0) to any value
+  Note that the Player 1 object is now at the left of the screen.
+
+** Player/Missile Image modes
+
+- PxVMODE (NUSIZx in ATARI docs) sets number of players/missiles
+  to render, and how they should be spaced on the current line.
+
+#+CAPTION: Player size/copies.
+| Bits 0-2 | Description          |
+|----------+----------------------|
+|      000 | One Object           |
+|      001 | Two copies, close    |
+|      010 | Two copies, medium   |
+|      011 | Three Copies, close  |
+|      100 | Two copies, wide     |
+|      101 | Double size Player   |
+|      110 | Three copies, medium |
+|      111 | Quad sized player    |
+
+- This register also sets # of copies for missiles.
+
+#+CAPTION: Missile size
+| Bits 4-5 | Description |
+|----------+-------------|
+|       00 | 1 Clock     |
+|       01 | 2 Clocks    |
+|       10 | 4 Clocks    |
+|       11 | 8 Clocks    |
+
+- Show how changing P1VMODE, P2VMODE alter how players/missiles are displayed
+  
+** Vertical positioning
+
+- Reminder: Graphic Data fed to TIA line by line
+
+- So we have to determine whether to display a player on a line.
+
+- We can subtract the current scanline, from the player's desired vertical position
+  and determine via carry if we need to display the graphic, and use the
+  difference as index into the player data for the given line.
+  Reference Line 401 ($F1A7) of EXPLORER
+  Borrowed from COMBAT.
+
+- Change VERT to 00
+  Note it doesn't go all the way to the top
+  Because the FROB logo at top is drawn by previous section of kernel
+
+- Change VERT to 60
+  Note it is almost off screen.
+  Due to 2 line kernel
+
+- Change VERT back to 00
+  
+#+CAPTION: Code fragment to display player 1 image on current scanline
+#+begin_src
+F1B0:38        412         SEC                 ; TEST FOR VERT CLOSE TO PLAYER 1
+F1B1:A5 85     413         LDA  VLNCT     ; GET THE VERTICAL POSITION AT THIS LINE
+F1B3:E5 AF     414         SBC  P1VERT    ; SUBTRACT THE PLAYER1 VERTICAL POSITION
+F1B5:90 04     415         BCC  NOP1      ; IF CARRY CLEAR THEN WE ARE NOT THERE YET
+F1B7:C9 08     416         CMP  #8        ; A NOW HOLDS THE INDEX TO THE IMAGE ARRAY
+F1B9:90 04     417         BCC  INP1      ; IF CARRY CLEAR WE ARE IN RANGE TO SHOW A LINE OF P1 IMAGE
+F1BB:A9 00     418 NOP1    LDA  #0        ; IF HERE, NO SHOW
+F1BD:F0 03     419         BEQ  P1DSP
+F1BF:AA        420 INP1    TAX            ; GO GET LINE OF IMAGE
+F1C0:B5 B3     421         LDA  P1IMG,X
+F1C2:85 1B     422 P1DSP   STA  P1IMAG    ; DISPLAY PLAYER1 IMAGE
+#+end_src
+
+** Horizontal Flipping
+
+- Player objects can be flipped
+  via P1FLIP, P2FLIP
+  (REFP0, REFP1 in ATARI docs!)
+
+- Bit 3 reverses horizontal order of pixels written to PxIMAG (GRPx)
+
+- Set PLAYER2 FLP to 08
+
+- Notice object is now reflected horizontally
+
+- Change HORZ values to show that reflection does not
+  affect horizontal motion values
+
+** Playfield Objects A, B, and C
+
+- Enabled via bits 2, 3, and 4 of ENABLE in EXPLORER
+
+- Built using the low resolution PLAYFIELD objects.
+  Object A is built using FLDAIM (PF0 in ATARI docs)
+  Object B is built using FLDBIM (PF1 in ATARI docs)
+  Object C is built using FLDCIM (PF2 in ATARI docs)
+  
+- Display controlled via FVMODE register (CTRLPF in ATARI docs)
+
+- FVMODE (CTRLPF) set by default for reflected display
+
+*** Altering Playfield Mode
+
+- Set ENABLE to 1C to
+  Disable Players 0 and 1
+  Enable Objects A, B, and C
+  
+- FVMODE (CTRLPF) set up by default for
+  reflected display = $05 (Reflect and PFP)
+
+| Bit | Description                                               |
+|-----+-----------------------------------------------------------|
+|   0 | Reflect Playfield                                         |
+|   1 | SCORE (left side uses P0 color, right side uses P1 color) |
+|   2 | PFP (=1 means playfield drawn in front of players)        |
+|   3 | Not used                                                  |
+|   4 | Ball Size                                                 |
+|   5 | Ball Size                                                 |
+
+- Bit 0 of FVMODE (CTRLPF) changes how playfield objects are sent to screen.
+
+#+begin_src
+
+|4  7|7      0|0      7|4  7|7      0|0      7|
+|PF0 |PF1     |PF2     |PF0 |PF1     |PF2     |
+
+  If bit0 = 0, then repeat
+    
+#+end_src
+
+#+begin_src
+
+|4  7|7      0|0      7|7      0|0      7|7  4|
+|PF0 |PF1     |PF2     |PF2     |PF1     |PF0 |
+
+  If bit0 = 1, then reflect
+    
+#+end_src 
+
+- Change FVMODE (CTRLPF) to $00, notice that AB BA X becomes AB AB half-X
+  
+- Change FVMODE (CTRLPF) to $01, notice AB AB becomes AB BA X
+
+- Change FVMODE (CTRLPF) to $03, notice that AB BA X takes on player colors
+
+- Change FVMODE (CTRLPF) to $04
+  Change P1 VERT to 35
+  Change P1 HORZ to 00 (no motion)
+  Note how PLAYER1 object goes behind the B
+
+- Change FVMODE (CTRLPF) to $00
+  Note how player 1 object is now in front of B
+
+*** Altering Playfield Objects
+
+- Object A IMAGE is built using FLDAIM (PF0 in ATARI docs)
+  Object B IMAGE is built using FLDBIM (PF1 in ATARI docs)
+  Object C IMAGE is built using FLDCIM (PF2 in ATARI docs)
+
+- FLDAIM (PF0) uses bits 4-7 (upper four bits)
+- FLDBIM (PF1) uses bits 0-7
+- FLDCIM (PF2) uses bits 0-7
+
+- 20 bits of playfield.
+  
+#+begin_src
+
+|4  7|7      0|0      7|4  7|7      0|0      7|
+|PF0 |PF1     |PF2     |PF0 |PF1     |PF2     |
+
+  If bit0 = 0, then repeat
+    
+#+end_src
+
+#+begin_src
+
+|4  7|7      0|0      7|7      0|0      7|7  4|
+|PF0 |PF1     |PF2     |PF2     |PF1     |PF0 |
+
+  If bit0 = 1, then reflect
+    
+#+end_src 
+
+- Change Object A Image to
+  50 A0 50 A0 50 A0 50 A0 (Lower nibble does nothing)
+
+- Change Object B Image to
+  18 3C 7E FF FF FF FF FF
+
+- Change Object C Image to
+  22 26 2A 2B 2D 2F 34 42
+      
+- Change FVMODE to $01
+  Notice checkerboard reflects (flips) on either side
+
+- Change FVMODE to $00
+  Observe the repeated effect.
+  
+** Screen 2 (1 Line Kernel)
+
+- Screen 1 was a 2 line kernel (96 lines vertical res)
+
+- Screen 2 is a 1 line kernel (192 lines vertical res)
+
+- Last experiment is 6 digit kernel
+  Image data for digit 1 from Player 1 image
+  Image data for digit 2 from Player 2 Image
+  Image Data for digit 3 from Object A image
+  Image Data for digit 4 from Object B image
+  Image data for digit 5 from Object C image
+  Image data for digit 6 from Object X image
+
+- Object X image comes from 8 bytes 
+  starting at address $DE
+  See EXPLORER reference OBJXIM
+
+- Set P1 Image to:
+  00 38 6C C6 C6 C6 6C 38
+
+- Set P2 Image to:
+  00 18 38 18 18 18 18 7e
+
+- Set Object A Image to:
+  00 7C C6 06 3C E0 C0 FE
+
+- Set Object B Image to:
+  00 FC 06 06 7C 06 06 FC
+
+- Set Object C Image to:
+  00 CC CC CC FE 0C 0C 0C
+
+- Set Object X Image to:
+  00 FC C0 C0 FC 06 06 FC
+  
+** Sound
+
+- Two sound channels
+
+- Sound A corresponds to AUDCx
+
+- Sound B corresponds to AUDFx
+
+- Sound C corresponds to AUDVx
+
+- AUDCx is 4 bits long (0-15)
+
+#+CAPTION: AUDCx Values
+
+| Value | Description             |
+|-------+-------------------------|
+|     0 | Hold at 1               |
+|     1 | 4 bit poly              |
+|     2 | 4 bit poly / 15         |
+|     3 | 4 bit poly / 5 bit poly |
+|     4 | Pure tone / 2           |
+|     5 | Pure tone / 2           |
+|     6 | Pure Tone / 31          |
+|     7 | 5 bit poly / 2          |
+|     8 | 9 bit poly (NOISE)      |
+|     9 | 5 bit poly              |
+|     A | Pure Tone / 31          |
+|     B | Last 4 bits to 1        |
+|     C | Pure Tone / 6           |
+|     D | Pure Tone / 6           |
+|     E | Pure Tone / 93          |
+|     F | 5 Bit Poly / 6          |
+
+- AUDFx is 5 bits long (0-31)
+
+- AUDVx is 4 bits long (0-15)
+
+* Using The Frob from the Apple Monitor
+
+- See Chapter 5 of the Conoisseur's Guide "USING THE FROB"
+
+- Control Port is Offset 0 of a slot's soft switches,
+  Therefore, if in slot 2, the control port is $C0A0
+
+- 4K SRAM is exposed at slot's address space, e.g. slot 2 is $C200-$C2FF
+  in 256 byte page increments, controlled by control register.
+  
+- Control Register is 6 bits wide:
+  Bits 0-3 specify which 256 byte page to expose at $Cx00
+  Bit 4 specifies whether Apple has control of Frob RAM (= 0), or VCS, (= 1)
+  Bit 5 disables (= 0), or enables (= 1) the bi-directional registers.
+
+- First, we enter the Monitor
+
+#+begin_src
+] CALL -151
+#+end_src
+
+- Next, we specify page zero of the Frob memory to be accessible via our slot's address space
+
+#+begin_src
+  * C0A0: 00
+#+end_src
+
+- At which point we can start entering the program in hex.
+
+#+begin_src
+  * C200: 78 D8 A2 FF 9A E8 8A 95 00 E8
+  
+  * C10A: D0 FB A9 00 85 02 85 02 A9 02
+  
+  * C114: 85 02 85 00 85 02 85 02 85 02
+
+  * C11E: A9 00 85 02 85 00 A9 02 85 02
+
+  * C128: A0 29 85 02 88 D0 FB 85 02 84 02
+
+  * C133: A0 C0 85 02 84 09 88 D0 F9 85 09
+
+  * C13E: A0 16 88 85 02 D0 FB 4C 0C F0
+#+end_src
+
+- We need to switch to the very last page ($FF00-$FFFF)
+  So we can set the RESET vector, required by the
+  6507 to start the program when the VCS is powered on.
+
+- The reset address should be $F000. That's where our program starts.
+
+- The two bytes we need to set are at addresses $FFFC, and $FFFD.
+  These relative to our Frob memory page are now at $C2FC, and $C2FD.
+  So once we set the page, we set those two bytes in little-endian order.
+  
+#+begin_src
+  * C0A0: 0F
+
+  * C2FC: 00 F0
+#+end_src
+
+- Once this is done, we can switch control of the Frob to the VCS
+  By setting bit 4.
+
+#+begin_src
+  * C0A0: 10
+#+end_src
+
+- And we can now turn the VCS on.
+
+** RAINBOW Listing
+
+#+begin_src
+      1  0000		       00 00	   VSYNC      =	$00
+      2  0000		       00 01	   VBLANK     =	$01
+      3  0000		       00 02	   WSYNC      =	$02
+      4  0000		       00 09	   COLUBK     =	$09
+      5  0000					      processor	6502
+      6  0000 ????
+      7  f000					      ORG	$F000
+      8  f000
+      9  f000				   START
+     10  f000		       78		      SEI
+     11  f001		       d8		      CLD
+     12  f002		       a2 ff		      LDX	#$FF
+     13  f004		       9a		      TXS
+     14  f005		       e8		      INX
+     15  f006		       8a		      TXA
+     16  f007		       95 00	   LF007      STA	VSYNC,X
+     17  f009		       e8		      INX
+     18  f00a		       d0 fb		      BNE	LF007
+     19  f00c		       a9 00	   LF00C      LDA	#$00
+     20  f00e		       85 01		      STA	VBLANK
+     21  f010		       85 02		      STA	WSYNC
+     22  f012		       a9 02		      LDA	#$02
+     23  f014		       85 02		      STA	WSYNC
+     24  f016		       85 00		      STA	VSYNC
+     25  f018		       85 02		      STA	WSYNC
+     26  f01a		       85 02		      STA	WSYNC
+     27  f01c		       85 02		      STA	WSYNC
+     28  f01e		       a9 00		      LDA	#$00
+     29  f020		       85 02		      STA	WSYNC
+     30  f022		       85 00		      STA	VSYNC
+     31  f024		       85 80		      STA	$80
+     32  f026		       a9 02		      LDA	#$02
+     33  f028		       85 01		      STA	VBLANK
+     34  f02a		       a0 29		      LDY	#$29
+     35  f02c		       85 02	   LF02C      STA	WSYNC
+     36  f02e		       88		      DEY
+     37  f02f		       d0 fb		      BNE	LF02C
+     38  f031		       85 02		      STA	WSYNC
+     39  f033		       84 01		      STY	VBLANK
+     40  f035		       a0 c0		      LDY	#$C0
+     41  f037		       85 02	   LF037      STA	WSYNC
+     42  f039		       84 09		      STY	COLUBK
+     43  f03b		       88		      DEY
+     44  f03c		       d0 f9		      BNE	LF037
+     45  f03e		       85 09		      STA	COLUBK
+     46  f040		       a0 17		      LDY	#$17
+     47  f042		       88	   LF042      DEY
+     48  f043		       85 02		      STA	WSYNC
+     49  f045		       d0 fb		      BNE	LF042
+     50  f047		       4c 0c f0 	      JMP	LF00C
+#+end_src
+
+* Writing FROBBLE tool for Drawing Player Graphics
+
+- Frobco provided source code for all tools
+  So you could write your own.
+
+- So we write something so we can draw player graphics
+
+- Divided into three small programs working in tandem.
+  
+- Using S/C Assembler 4.0 as our assembler.
+
+** Frobble VCS
+
+- Written in S/C Assembler
+
+- Assembles to $8000
+
+- Org's to $F000
+
+- For each frame:
+  Do vsync
+  Do vblank
+  Wait 32 scanlines
+  Draw the 8 lines of player data.
+  Wait Until we've drawn all scanlines
+  Do it all again
+
+*** Frobble Listing
+
+#+begin_src
+
+1000 ******************************
+1010 ** FROBBLE, A PLAYER EDITOR **
+1020 **          FOR THE FROB    **
+1030 ******************************
+1040 ** AUTHOR: THOM CHERRYHOMES **
+1050 ******************************
+1060 ** STARTED: 03/11/2025      **
+1070 ** LAST CH: 03/11/2025      **
+1080 ******************************
+1090 ** BUILD WITH S-C ASM V4.0  **
+1100 ******************************
+1110 ** LICENSED UNDER GPL 3.0   **
+1120 ******************************
+1200        .IN VCS EQUATES
+1800 VBTINT     .EQ 43 ; VERTICAL BLANK TIMER VALUE
+1810 TOTLSCAN   .EQ $EC ; 236 SCANLINES WITH OVERSCAN
+1820 DEFUBK     .EQ $94 ; BLUE
+1830 DEFUP0     .EQ $BC ; CYAN
+1900 **
+1910 TARL   .EQ $80      ; PTR FOR FMON
+1920 TARH   .EQ $81      ; +1
+1930 COMCOD .EQ $82      ; COMMAND CODE
+1940 SCLUP0 .EQ $83      ; SHADOW FOR COLUP0
+1950 SCLUBK .EQ $84      ; SHADOW FOR COLUBK
+1951 GRDATA     .EQ $90  ; GRAPHIC DATA IN RAM
+1960 *
+2000        .OR $F000
+2001        .TA $8000
+2002        .TF FROBBLE.VCS.OBJ0
+2010 START  LDX #$FF ; RESET - SET UP STK PTR
+2020        TXS          ; X -> SP
+2030        CLD          ; CLEAR DECIMAL MODE
+2040        LDX #$00     ; DO A MEMORY CLEAR
+2050        LDA #$00
+2060 CLOOP  STA $00,X    ; CLEAR NEXT ADDRESS
+2070        DEX          ; RIPPLE UP TO ZERO
+2080        BNE CLOOP    ; LOOP IF NOT DONE
+2090 **
+2100 ** GO AHEAD AND SET DEFAULT COLORS
+2110 **
+2120 SETDEF     LDA #DEFUP0
+2130            STA SCLUP0
+2140            LDA #DEFUBK
+2141        LDA #$07     ; QUAD PLAYER
+2142        STA NUSIZ0   ; SIZE
+2143        LDA #$10     ; MOVE A BIT
+2144        STA HMP0     ; PLAYER 0
+2150            STA SCLUBK
+2151        LDA #$55
+2152        STA GRDATA
+2153        STA GRDATA+2
+2154        STA GRDATA+4
+2155        STA GRDATA+6
+2156        LDA #$AA
+2157        STA GRDATA+1
+2158        STA GRDATA+3
+2159        STA GRDATA+5
+2160        STA GRDATA+7
+2170 ** MAIN LOOP
+2180 **
+2190 MAIN   JSR VS       ; VERTICAL SYNC
+2200        JSR FMON     ; HANDLE FMON
+2210        JSR VE       ; WAIT FOR VBLANK END
+2220        JSR DISPLAY  ; DISPLAY KERNEL
+2230        JMP MAIN     ; ENDLESS LOOP
+2240 **
+2250 ** HANDLE VERTICAL SYNC
+2260 **
+2270 VS     LDA #$02
+2280        STA WSYNC    ; WAIT FOR NEXT LINE
+2290        STA VBLANK   ; GO BLACK
+2300        STA WSYNC    ; DO THREE
+2310        STA WSYNC    ; BLACK LINES
+2320        STA WSYNC    ; OF VBLANK
+2330        STA VSYNC    ; ENABLE VSYNC, BLACKER THAN BLACK
+2340        STA WSYNC    ; WAIT A LINE
+2350        STA WSYNC    ; AND ANOTHER
+2360        LDA #$00     ; GET READY TO TURN OFF
+2370        STA WSYNC    ; ONE LAST VSYNC LINE
+2380        STA VSYNC    ; TURN OFF VSYNC.
+2390        LDA #VBTINT  ; LOAD 64*64 INTERVALS
+2400        STA TIM64T   ; INTO TIMER FOR VBLANK WAIT
+2410        RTS          ; WE ARE NOW AT SCANLINE 1 OF NEW FRAME
+2420 **
+2430 ** END VERTICAL BLANK
+2440 **
+2450 VE     LDA INTIM    ; DONE WAITING?
+2460        BNE VE       ; NOPE, WAIT SOME MORE
+2470        RTS
+2480 **
+2490 ** HANDLE DISPLAY KERNEL
+2500 **
+2510 DISPLAY    LDA #$00
+2520        LDY #TOTLSCAN ; 192 SCANLINE COUNT IN Y
+2530        LDA SCLUP0   ; LOAD SHADOW
+2540        STA COLUP0   ; INTO PLAYER 0 COLOR
+2550        LDA SCLUBK   ; LOAD SHADOW
+2560        STA COLUBK   ; INTO BKG COLOR
+2570        STA WSYNC    ; WAIT 1 LINE
+2580        DEY          ; DECREMENT SCANLINE CTR
+2590        STA HMOVE    ; STROBE HMOVE
+2600        STA WSYNC    ; WAIT 1 LINE
+2610        DEY          ; DECREMENT SCANLINE CTR
+2620        STA VBLANK   ; TURN OFF VBLANK
+2630 ** GO DOWN SCREEN A BIT
+2640        LDX #32      ; COUNT DOWN 32 LINES
+2641 VSCOOT     STA WSYNC  ; WAIT A LINE
+2650        DEY          ; DECREMENT SCANLINE
+2660        DEX          ; DECREMENT SCOOT
+2670        BNE VSCOOT   ; LOOP IF NOT DONE YET.
+2680 ** DISPLAY PLAYER
+2690        LDX #$00     ; PLAYER IS 8 LINES TALL
+2700 VUPD   LDA GRDATA,X ; LOAD NEXT LINE OF PLAYER DATA
+2710        STA GRP0     ; STORE INTO PLAYER 0 REGISTER
+2720        STA WSYNC    ; WAIT A LINE
+2730        INX          ; COUNT UP
+2740        DEY          ; DECREMENT SCANLINE
+2750        CPX #$08     ; 8 LINES YET?
+2760        BNE VUPD     ; NOPE, GO AGAIN.
+2770        LDA #$00     ; ZERO OUT
+2780        STA GRP0     ; PLAYER 0 DATA TO AVOID TAILS
+2790 ** WSYNC UNTIL VISIBLE KERNEL DONE
+2800 VWAIT  STA WSYNC    ; WAIT LINE
+2810        DEY          ; COUNT DOWN
+2820        BNE VWAIT    ; DO IT UNTIL WE'RE DONE
+2830        RTS
+2840 **
+2850 ** THIS PROGRAM EMBEDS THE FROB
+2860 ** MONITOR (FMON) TO SEND PLAYER
+2870 ** DATA TO THE VCS FROM THE
+2880 ** APPLE II.
+2890 **
+2900 ** FMON COMMANDS
+2910 **
+2920 ** 10 - SET ADDRESS (2 BYTES)
+2930 ** 20 - READ BYTE
+2940 ** 40 - WRITE BYTE
+2950 **
+2960 ** SUB-COMMANDS
+2970 **
+2980 ** X0 - DO NOTHING
+2990 ** X1 - POST INCREMENT
+3000 ** X2 - POST DECREMENT
+3010 **
+3020 ** MEMORY USAGE: 
+3030 **
+3040 ** TARL - TARGET ADDRESS LOW
+3050 ** TARH - TARGET ADDRESS HIGH
+3060 ** COMCOD - COMMAND CODE STORE
+3070 **
+3080 ** EQUATES
+3090 **
+3100 AR1    .EQ $FFF0    ; FMON WRITE REGISTER
+3110 AR2    .EQ $FFF1    ; FMON STATUS
+3120 AR3    .EQ $FFF2    ; FMON READ REGISTER
+3130 **
+3140 FMON   LDA AR2      ; CHECK IF COMMAND WAITING
+3150        AND #$40     
+3160        BEQ NOCOM    ; IF NOT, EXIT
+3170        LDA AR3      ; GET COMMAND
+3180        STA COMCOD   ; STORE IN COMCOD
+3190        AND #$10
+3200        BEQ L1
+3210        JSR SETADDR
+3220        JMP FMON
+3230 NOCOM  RTS          ; IF NO COMMAND, JUST RETURN
+3240 L1     LDA COMCOD   
+3250        AND #$20
+3260        BEQ L2
+3270        JSR READ
+3280        JMP FMON
+3290 L2     LDA COMCOD
+3300        AND #$40
+3310        BEQ L3
+3320        JSR WRITE
+3330 L3     JMP FMON
+3340 **
+3350 ** READOK
+3360 **
+3370 ** CHECK IF IT'S OKAY TO READ APPLE
+3380 **
+3390 READOK     LDA AR2  ; CHECK STATUS
+3400        AND #$40     ; OK TO READ?
+3410        BEQ READOK   ; NOPE, KEEP LOOKING
+3420        RTS          ; YES
+3430        PLA
+3440 DOREAD     RTS
+3450 **
+3460 **
+3470 WRITEOK    LDA AR2
+3480        AND #$80
+3490        BEQ WRITEOK
+3500        RTS
+3510 **
+3520 ** SETADDR
+3530 **
+3540 SETADDR    JSR READOK
+3550        LDA AR3
+3560        STA TARH
+3570        JSR READOK
+3580        LDA AR3
+3590        STA TARL
+3600        RTS
+3610 **
+3620 ** READ
+3630 **
+3640 READ   JSR WRITEOK
+3650        LDY #$00
+3660        LDA (TARL),Y
+3670        STA AR1
+3680        LDA COMCOD
+3690        AND #$07
+3700        BEQ RL1
+3710        AND #$01
+3720        BEQ RL2
+3730        DEC TARL
+3740        JMP RXT
+3750 RL1    JMP RXT
+3760 RL2    INC TARL
+3770        JMP RXT
+3780 RXT    RTS
+3790 **
+3800 ** WRITE
+3810 **
+3820 WRITE  JSR READOK
+3830        LDA AR3
+3840        LDY #$00
+3850        STA (TARL),Y
+3860        LDA COMCOD
+3870        AND #$07
+3880        BEQ WL1
+3890        AND #$01
+3900        BEQ WL2
+3910        DEC TARL
+3920        JMP WXT
+3930 WL1    JMP WXT
+3940 WL2    INC TARL
+3950        JMP WXT
+3960 WXT    RTS
+3970 **
+3980 **
+3990 **  
+#+end_src 
+
+** Frobble A2
+
+- Control Program running on Apple ][
+
+- Program Loop:
+  Display graphic pixel data
+  Get key
+  Update Graphic Data
+  Send Graphic Data to VCS
+  Do it all again.
+
