@@ -915,6 +915,70 @@ F1C2:85 1B     422 P1DSP   STA  P1IMAG    ; DISPLAY PLAYER1 IMAGE
      50  f047		       4c 0c f0 	      JMP	LF00C
 #+end_src
 
+* Using FSAVE
+
+- Saves entire 4K ROM space as a BSAVE file.
+
+- File address is $8000
+
+- Uses PMOVE to move Frob RAM to Apple2 RAM.
+  
+- Resulting file is 18 sectors long.
+
+** Saving RAINBOW
+
+- With RAINBOW in Frob memory, RUN FSAVE.
+
+#+begin_src
+]RUN FSAVE
+#+end_src 
+
+- FSAVE will annouce itself
+  And ask for the Frob slot
+  We'll select 2
+
+#+begin_src
+PROGRAM TO SAVE FROB FILES
+TO A BSAVE DISK FILE
+
+
+WHAT SLOT IS THE FROB IN?2
+#+end_src
+
+- It will ask for the name of a destination file
+  We'll call it RAINBOW.OBJ
+
+#+begin_src
+ENTER NAME OF FILE?RAINBOW.OBJ
+#+end_src
+
+- It will pause so you can insert the correct disk
+
+#+begin_src
+PRESS RETURN WHEN READY TO WRITE DISK?
+#+end_src
+
+- After a bit of disk writing, the program completes.
+
+#+begin_src
+
+SAVE PROCESS COMPLETE
+
+]
+  
+#+end_src
+
+** What was saved?
+
+- If we go to the Apple Monitor, we can see
+  the saved contents from $8000 to $8FFF.
+
+#+begin_src
+  ]CALL -151
+
+  *8000L
+#+end_src
+
 * Writing FROBBLE tool for Drawing Player Graphics
 
 - Frobco provided source code for all tools
