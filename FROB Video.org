@@ -10,6 +10,59 @@
 
 - Give In-Depth Demonstration of The Frob, and its capabilities
 
+* What is the Frob?
+
+- A Gamedev system for the ATARI VCS, using an Apple ][
+
+- Retailed for $495.00
+
+- Software Provided: Loader, Debugger, and Exploratory tool for VCS development
+
+- Hardware Provided: Frob Card, Frob Cartridge Adapter
+
+- Documentation Provided: The Frob: A Conoisseur's Guide; Newsletters
+
+- You provided Assembler, and a VCS.
+
+** Definition and History
+
+- Definition: Frob (n) (MIT, slang) Any small device or object (usually hand-sized) which can be manipulated.
+Hand me that frob there, will you?
+
+- Etymology: Clipping of frobnicate, from frobnitz, coined circa 1958 by David R. Sawyer of the MIT Tech Model Railroad Club (TMRC).[1] Year of origin uncertain, and could be 1958–1981: frob is not listed in the TMRC dictionaries of 1959 or 1960,[2] and is first listed in the Jargon File (1981 edition), so it may date from the 1960s or 1970s. Possibly variant of or influenced by frotsus (“a protruding arm or trunnion”), which is listed in TMRC 1959 and 1960.
+
+- Designed by FrobCo (a dba of Pacific Polytechnical Corp) throughout 1981, Released in 1982.
+
+- FrobCo Founder Ken Clements describes its creation in this email:
+
+#+begin_src
+Hi Thom,
+
+Yes, I created the Frob and Frobco.
+I have long thought about writing down the whole story,
+so seeing you get one going is very heartfelt for me.
+I still have the original wire-wrapped prototype from when
+I reverse-engineered the VCS (over 40 years ago) to make the development system.
+My friend, David Daugherty, wrote the Apple II software to run it.
+
+  Frobco was formed as a DBA of Pacific Polytechnical Corp.
+in Santa Cruz CA, of which I was President and head technologist.
+I formed PPC with some other recent (then late 70s) graduate technical guys from UCSC
+to do consulting new product development. We ended up putting microprocessors
+in slot machines in Las Vegas, which led to the coin-op industry and video games.
+When video games hit the home market with the VCS,
+and we found out that those games were 6502 based,
+same as the Apple II, it was obvious that we could use our Apples to do VCS development.
+That led to my reverse engineering the VCS and making the Frob to act as a ROM emulator.
+I had been building my own computers using microprocessors since 1975.
+
+PPC got into business trouble, and it was necessary to sell the company to a technical conglomerate,
+but we had no physical product, so I decided to productize our internal development system,
+The Frob, and start selling that so the company could show sales revenue, and get a valuation for M&A.
+That worked, we built and sold units, folks started writing VCS games with the product,
+we sold PPC, then I left and started other companies.
+#+end_src
+
 * How Were Games Developed For the 2600?
 
 - Target system, Atari VCS (CX2600) used 6507 Microprocessor
@@ -1045,7 +1098,17 @@ SAVE PROCESS COMPLETE
 *3D0G
 #+end_src
 
-* 
+* Using FLOAD
+
+- The complementary tool to FSAVE
+
+- Loads up to 4K of any BSAVE file
+  into FROB RAM.
+
+- Can load 2K files
+  into low ($F000-$F7FF)
+  or high ($F800-$FFFF) RAM.
+  
 * Writing FROBBLE tool for Drawing Player Graphics
 
 - Frobco provided source code for all tools
