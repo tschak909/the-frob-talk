@@ -974,11 +974,78 @@ SAVE PROCESS COMPLETE
   the saved contents from $8000 to $8FFF.
 
 #+begin_src
-  ]CALL -151
+]CALL-151
 
-  *8000L
+*8000L
+
+8000-   78          SEI   
+8001-   D8          CLD   
+8002-   A2 FF       LDX   #$FF
+8004-   9A          TXS   
+8005-   E8          INX   
+8006-   8A          TXA   
+8007-   95 00       STA   $00,X
+8009-   E8          INX   
+800A-   D0 FB       BNE   $8007
+800C-   A9 00       LDA   #$00
+800E-   85 01       STA   $01
+8010-   85 02       STA   $02
+8012-   A9 02       LDA   #$02
+8014-   85 02       STA   $02
+8016-   85 00       STA   $00
+8018-   85 02       STA   $02
+801A-   85 02       STA   $02
+801C-   85 02       STA   $02
+801E-   A9 00       LDA   #$00
+8020-   85 02       STA   $02
+*L
+
+8022-   85 00       STA   $00
+8024-   85 80       STA   $80
+8026-   A9 02       LDA   #$02
+8028-   85 01       STA   $01
+802A-   A0 29       LDY   #$29
+802C-   85 02       STA   $02
+802E-   88          DEY   
+802F-   D0 FB       BNE   $802C
+8031-   85 02       STA   $02
+8033-   84 01       STY   $01
+8035-   A0 C0       LDY   #$C0
+8037-   85 02       STA   $02
+8039-   84 09       STY   $09
+803B-   88          DEY   
+803C-   D0 F9       BNE   $8037
+803E-   85 09       STA   $09
+8040-   A0 17       LDY   #$17
+8042-   88          DEY   
+8043-   85 02       STA   $02
+8045-   D0 FB       BNE   $8042
+*L
+
+8047-   4C 0C F0    JMP   $F00C
+804A-   0F          ???   
+804B-   F5 F5       SBC   $F5,X
+804D-   F5 F5       SBC   $F5,X
+804F-   F5 F5       SBC   $F5,X
+8051-   F5 F5       SBC   $F5,X
+8053-   F5 F5       SBC   $F5,X
+8055-   F5 F5       SBC   $F5,X
+8057-   F5 F5       SBC   $F5,X
+8059-   F5 F5       SBC   $F5,X
+805B-   F5 F5       SBC   $F5,X
+805D-   F5 F5       SBC   $F5,X
+805F-   F5 F5       SBC   $F5,X
+8061-   F5 F5       SBC   $F5,X
+8063-   F5 F5       SBC   $F5,X
+8065-   F5 F5       SBC   $F5,X
+8067-   F5 F5       SBC   $F5,X
+8069-   F5 F5       SBC   $F5,X
+806B-   F5 F5       SBC   $F5,X
+806D-   F5 F5       SBC   $F5,X
+*3D0G
 #+end_src
 
+* 
 * Writing FROBBLE tool for Drawing Player Graphics
 
 - Frobco provided source code for all tools
