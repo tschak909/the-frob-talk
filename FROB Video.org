@@ -1514,10 +1514,365 @@ DOWNLOAD PROCESS COMPLETE
 
 - Control Program running on Apple ][
 
+- 8x8 drawing area
+
+#+begin_src
+.█.█.█.█
+█.█.█.█.
+.█.█.█.█
+█.█.█.█.
+.█.█.█.█
+█.█.█.█.
+.█.█.█.█
+█.█.█.█.
+#+end_src
+
+- Cursor keys for moving around drawing area
+#+begin_src
+  I
+J   K
+  M
+#+end_src
+
+- Clear Drawing Area with 'C'
+  
 - Program Loop:
   Display graphic pixel data
   Get key
   Update Graphic Data
   Send Graphic Data to VCS
   Do it all again.
+
+*** Frobble A2 Listing
+
+#+begin_src
+               1000 ****************************
+               1010 **                        **
+               1020 ** FROBBLE - A PLAYER GFX **
+               1030 ** EDITOR FOR THE FROB    **
+               1040 **                        **
+               1050 ****************************
+               1100 **
+               1110 ** EQUATES
+               1120 **
+0020-          1121 CPXS   .EQ $20      ; SET PIXEL CHARACTER
+00AE-          1122 CPXU   .EQ $AE      ; UNSET PIXEL CHARACTER
+FC58-          1130 HOME   .EQ $FC58    ; CLEAR AND HOME SCREEN
+FDED-          1140 COUT   .EQ $FDED    ; OUTPUT A TO SCREEN
+0024-          1150 CH     .EQ $24      ; X SCR POS
+0025-          1160 CV     .EQ $25      ; Y SCR POS
+FD0C-          1170 RDKEY  .EQ $FD0C    ; READ KEY TO A
+FB5B-          1180 TABV   .EQ $FB5B    ; PLACE CURSOR
+0010-          1190 SACMD  .EQ $10      ; SET ADDRESS CMD
+0020-          1200 RDCMD  .EQ $20      ; READ ADDRESS CMD
+0040-          1210 WRCMD  .EQ $40      ; WRITE ADDRESS CMD
+0085-          1220 FSTAT  .EQ $85      ; PTR TO STATUS REG
+0087-          1230 FDATA  .EQ $87      ; PTR TO DATA
+0089-          1240 RDHGH  .EQ $89      ; READ HIGH
+0090-          1250 RDLOW  .EQ $90      ; READ LOW
+               1999        .TF FROBBLE.A2.OBJ0
+0800- 20 58 FC 2000 BEGIN  JSR HOME     ; CLEAR SCREEN
+0803- 20 C2 09 2001        JSR INIT     ; SET UP
+0806- 20 49 09 2010 MAIN   JSR DISP
+0809- 20 79 08 2011        JSR UPDVCS
+080C- 20 B4 09 2020        JSR RSETC
+080F- 20 0C FD 2060        JSR RDKEY    ; GET KEY
+0812- C9 C3    2070 KC     CMP #$C3
+0814- D0 03    2080        BNE KI       ; NOPE
+0816- 20 E6 08 2090        JSR CLRDATA  ; CLEAR GRAPHIC DATA
+0819- C9 C9    2100 KI     CMP #$C9     ; 'I' ?
+081B- D0 06    2110        BNE KM       ; NOPE
+081D- 20 01 09 2120        JSR KUP      ; YES, DO UP
+0820- 4C 06 08 2130        JMP MAIN     ; GO BACK
+0823- C9 CD    2140 KM     CMP #$CD     ; 'M'
+0825- D0 06    2150        BNE KJ       ; NOPE
+0827- 20 0D 09 2160        JSR KDN      ; YES, DO DN
+082A- 4C 06 08 2170        JMP MAIN
+082D- C9 CA    2180 KJ     CMP #$CA     ; 'J' ?
+082F- D0 06    2190        BNE KK       ; NOPE
+0831- 20 19 09 2200        JSR KLF      ; GO LEFT
+0834- 4C 06 08 2210        JMP MAIN     ; BTM
+0837- C9 CB    2220 KK     CMP #$CB     ; 'K' ?
+0839- D0 06    2230        BNE KS       ; NOPE
+083B- 20 25 09 2240        JSR KRT      ; GO RIGHT
+083E- 4C 06 08 2250        JMP MAIN     ; BTM
+0841- C9 A0    2260 KS     CMP #$A0     ; SPACE?
+0843- D0 C1    2270        BNE MAIN     ; NOPE
+0845- 20 31 09 2280        JSR KTB      ; TOGGLE BIT AT CURSOR
+0848- 4C 06 08 2290        JMP MAIN     ; AND BACK.
+               3000 **
+               3010 ** SET VCS ADDRESS
+               3020 **
+084B- A0 00    3030 SETADR     LDY #$00
+084D- B1 85    3040 SA1    LDA (FSTAT),Y
+084F- 10 FC    3050        BPL SA1
+0851- A9 10    3060        LDA #SACMD
+0853- 91 87    3070        STA (FDATA),Y
+0855- B1 85    3080 SA2    LDA (FSTAT),Y
+0857- 10 FC    3090        BPL SA2
+0859- A5 89    3100        LDA RDHGH
+085B- 91 87    3110        STA (FDATA),Y
+085D- B1 85    3120 SA3    LDA (FSTAT),Y
+085F- 10 FC    3130        BPL SA3
+0861- A5 90    3140        LDA RDLOW
+0863- 91 87    3150        STA (FDATA),Y
+0865- 60       3160        RTS
+               3200 **
+               3210 ** VCS WRITE
+               3220 **
+0866- 48       3230 WRITE  PHA
+0867- A0 00    3240        LDY #$00
+0869- B1 85    3250 WTR1   LDA (FSTAT),Y
+086B- 10 FC    3260        BPL WTR1
+086D- A9 40    3270        LDA #WRCMD
+086F- 91 87    3280        STA (FDATA),Y
+0871- B1 85    3290 WTR2   LDA (FSTAT),Y
+0873- 10 FC    3300        BPL WTR2
+0875- 68       3310        PLA
+0876- 91 87    3320        STA (FDATA),Y
+0878- 60       3330        RTS
+               4000 **
+               4010 ** UPDATE PLAYER GRAPHIC ON VCS
+               4020 **
+0879- A9 00    4030 UPDVCS     LDA #$00
+087B- 85 89    4040        STA RDHGH
+087D- A9 90    4050        LDA #$90
+087F- 85 90    4060        STA RDLOW
+0881- 20 4B 08 4070        JSR SETADR
+0884- AD D6 09 4080        LDA GRDATA
+0887- 20 66 08 4090        JSR WRITE
+088A- A9 91    4100        LDA #$91
+088C- 85 90    4110        STA RDLOW
+088E- 20 4B 08 4120        JSR SETADR
+0891- AD D7 09 4130        LDA GRDATA+1
+0894- 20 66 08 4140        JSR WRITE
+0897- A9 92    4150        LDA #$92
+0899- 85 90    4160        STA RDLOW
+089B- 20 4B 08 4170        JSR SETADR
+089E- AD D8 09 4180        LDA GRDATA+2
+08A1- 20 66 08 4190        JSR WRITE
+08A4- A9 93    4200        LDA #$93
+08A6- 85 90    4210        STA RDLOW
+08A8- 20 4B 08 4220        JSR SETADR
+08AB- AD D9 09 4230        LDA GRDATA+3
+08AE- 20 66 08 4240        JSR WRITE
+08B1- A9 94    4250        LDA #$94
+08B3- 85 90    4260        STA RDLOW
+08B5- 20 4B 08 4270        JSR SETADR
+08B8- AD DA 09 4280        LDA GRDATA+4
+08BB- 20 66 08 4290        JSR WRITE
+08BE- A9 95    4300        LDA #$95
+08C0- 85 90    4310        STA RDLOW
+08C2- 20 4B 08 4320        JSR SETADR
+08C5- AD DB 09 4330        LDA GRDATA+5
+08C8- 20 66 08 4340        JSR WRITE
+08CB- A9 96    4350        LDA #$96
+08CD- 85 90    4360        STA RDLOW
+08CF- 20 4B 08 4370        JSR SETADR
+08D2- AD DC 09 4380        LDA GRDATA+6
+08D5- 20 66 08 4390        JSR WRITE
+08D8- A9 97    4400        LDA #$97
+08DA- 85 90    4410        STA RDLOW
+08DC- 20 4B 08 4420        JSR SETADR
+08DF- AD DD 09 4430        LDA GRDATA+7
+08E2- 20 66 08 4440        JSR WRITE
+08E5- 60       4450        RTS
+               8000 **
+               8010 ** CLEAR GRAPHIC DATA
+               8020 **
+08E6- A9 00    8030 CLRDATA    LDA #$00
+08E8- 8D D6 09 8040        STA GRDATA
+08EB- 8D D7 09 8050        STA GRDATA+1
+08EE- 8D D8 09 8060        STA GRDATA+2
+08F1- 8D D9 09 8070        STA GRDATA+3
+08F4- 8D DA 09 8080        STA GRDATA+4
+08F7- 8D DB 09 8090        STA GRDATA+5
+08FA- 8D DC 09 8100        STA GRDATA+6
+08FD- 8D DD 09 8110        STA GRDATA+7
+0900- 60       8120        RTS
+               8200 **
+               8210 ** 'I' UP
+               8220 **
+0901- AC DF 09 8230 KUP    LDY CY       ; CHECK CY
+0904- C0 00    8231        CPY #$00     ; ALREADY AT 0?
+0906- F0 04    8240        BEQ KUPX     ; IF 0, EXIT
+0908- 88       8250        DEY          ; Y--
+0909- 8C DF 09 8260        STY CY       ; STORE IT
+090C- 60       8270 KUPX   RTS
+               8300 **
+               8310 ** 'M' DOWN
+               8320 ** 
+090D- AC DF 09 8330 KDN    LDY CY       ; CHECK CY
+0910- C0 07    8340        CPY #$07     ; BOTTOM?
+0912- F0 04    8350        BEQ KDNX     ; YES, EXIT
+0914- C8       8360        INY          ; Y++
+0915- 8C DF 09 8370        STY CY       ; STORE IT.
+0918- 60       8380 KDNX   RTS
+               8400 **
+               8410 ** 'J' LEFT
+               8420 **
+0919- AE DE 09 8430 KLF    LDX CX       ; CHECK CX
+091C- E0 00    8440        CPX #$00     ; AT LEFT?
+091E- F0 04    8450        BEQ KLFX     ; YES EXIT.
+0920- CA       8460        DEX          ; X--
+0921- 8E DE 09 8470        STX CX       ; STORE IT.
+0924- 60       8480 KLFX   RTS
+0925- AE DE 09 8500 KRT    LDX CX       ; CHECK CX
+0928- E0 07    8510        CPX #$07     ; AT RIGHT?
+092A- F0 04    8520        BEQ KRTX     ; YES, EXIT.
+092C- E8       8530        INX          ; X++
+092D- 8E DE 09 8540        STX CX       ; STORE IT
+0930- 60       8550 KRTX   RTS          ; BYE
+               8600 **
+               8610 ** TOGGLE BIT AT CX,CY
+               8620 **
+0931- AC DF 09 8630 KTB    LDY CY       ; GET Y
+0934- AE DE 09 8640        LDX CX       ; GET X
+0937- B9 D6 09 8650        LDA GRDATA,Y ; GET GRAPHIC DATA FOR ROW
+093A- 5D 41 09 8660        EOR EORTAB,X ; EOR THE BIT
+093D- 99 D6 09 8670        STA GRDATA,Y ; STORE IT BACK
+0940- 60       8680        RTS          ; DONE.
+0941- 80 40 20
+0944- 10 08 04
+0947- 02 01    8690 EORTAB     .HS 8040201008040201
+               9000 **
+               9010 ** DISPLAY GRAPHIC DATA GRDATA
+               9020 **
+0949- 20 58 FC 9030 DISP   JSR HOME
+094C- AD D6 09 9039        LDA GRDATA
+094F- 20 7D 09 9040        JSR BY2PX
+0952- AD D7 09 9050        LDA GRDATA+1
+0955- 20 7D 09 9060        JSR BY2PX
+0958- AD D8 09 9070        LDA GRDATA+2
+095B- 20 7D 09 9080        JSR BY2PX
+095E- AD D9 09 9090        LDA GRDATA+3
+0961- 20 7D 09 9100        JSR BY2PX
+0964- AD DA 09 9110        LDA GRDATA+4
+0967- 20 7D 09 9120        JSR BY2PX
+096A- AD DB 09 9130        LDA GRDATA+5
+096D- 20 7D 09 9140        JSR BY2PX
+0970- AD DC 09 9150        LDA GRDATA+6
+0973- 20 7D 09 9160        JSR BY2PX
+0976- AD DD 09 9170        LDA GRDATA+7
+0979- 20 7D 09 9180        JSR BY2PX
+097C- 60       9190        RTS
+               9200 **
+               9210 ** DISPLAY SINGLE ROW OF DATA
+               9220 **
+097D- 20 A2 09 9230 BY2PX  JSR BYDSP
+0980- 0A       9240        ASL
+0981- 20 A2 09 9250        JSR BYDSP
+0984- 0A       9260        ASL
+0985- 20 A2 09 9270        JSR BYDSP
+0988- 0A       9280        ASL
+0989- 20 A2 09 9290        JSR BYDSP
+098C- 0A       9300        ASL
+098D- 20 A2 09 9310        JSR BYDSP
+0990- 0A       9320        ASL
+0991- 20 A2 09 9330        JSR BYDSP
+0994- 0A       9340        ASL
+0995- 20 A2 09 9350        JSR BYDSP
+0998- 0A       9360        ASL
+0999- 20 A2 09 9370        JSR BYDSP
+099C- A9 8D    9380        LDA #$8D     ; <CR>
+099E- 20 ED FD 9381        JSR COUT     ; DISPLAY IT
+09A1- 60       9390        RTS
+               9400 **
+               9410 ** DISPLAY BIT7 OF BYTE IN A
+               9420 **
+09A2- 10 08    9430 BYDSP  BPL BY1
+09A4- 48       9440        PHA
+09A5- A9 20    9450        LDA #CPXS    ; SHOW PIXEL SET
+09A7- 20 ED FD 9460        JSR COUT     ; DISPLAY IT
+09AA- 68       9470        PLA          ; RESTORE A
+09AB- 60       9480        RTS
+09AC- 48       9490 BY1    PHA          ; SAVE A
+09AD- A9 AE    9500        LDA #CPXU    ; SHOW PIXEL UNSET
+09AF- 20 ED FD 9510        JSR COUT     ; DISPLAY IT
+09B2- 68       9520        PLA          ; RESTORE A
+09B3- 60       9530        RTS
+09B4- AD DE 09 9600 RSETC  LDA CX
+09B7- 85 24    9610        STA CH
+09B9- AD DF 09 9620        LDA CY
+09BC- 85 25    9630        STA CV
+09BE- 20 5B FB 9640        JSR TABV
+09C1- 60       9670        RTS
+               9700 **
+               9710 ** INIT
+               9720 **
+09C2- A9 C0    9730 INIT   LDA #$C0     ; $C000
+09C4- 85 86    9740        STA FSTAT+1  ; STORE HI
+09C6- 85 88    9750        STA FDATA+1  ; STORE HI
+09C8- A9 90    9760        LDA #$90     ; $C090
+09CA- 85 85    9770        STA FSTAT    ; STORE LO
+09CC- A9 91    9780        LDA #$91     ; $C091
+09CE- 85 87    9790        STA FDATA    ; STORE LO
+09D0- A9 30    9791        LDA #$30     ; TURN ON BIDI
+09D2- 8D 90 C0 9792        STA $C090    ; TO SLOT 1
+09D5- 60       9800        RTS          ; BACK TO MAIN
+               9801 
+               9900 ** 
+               9910 ** GRAPHICAL DATA
+               9920 ** 
+09D6- 55 AA 55
+09D9- AA 55 AA
+09DC- 55 AA    9930 GRDATA     .HS 55AA55AA55AA55AA
+09DE- 00       9940 CX     .HS 00       ; CURSOR X
+09DF- 00       9950 CY     .HS 00       ; CURSOR Y
+
+
+SYMBOL TABLE
+
+0800- BEGIN
+09AC- BY1
+097D- BY2PX
+09A2- BYDSP
+0024- CH
+08E6- CLRDATA
+FDED- COUT
+0020- CPXS
+00AE- CPXU
+0025- CV
+09DE- CX
+09DF- CY
+0949- DISP
+0941- EORTAB
+0087- FDATA
+0085- FSTAT
+09D6- GRDATA
+FC58- HOME
+09C2- INIT
+0812- KC
+090D- KDN
+0918- KDNX
+0819- KI
+082D- KJ
+0837- KK
+0919- KLF
+0924- KLFX
+0823- KM
+0925- KRT
+0930- KRTX
+0841- KS
+0931- KTB
+0901- KUP
+090C- KUPX
+0806- MAIN
+0020- RDCMD
+0089- RDHGH
+FD0C- RDKEY
+0090- RDLOW
+09B4- RSETC
+084D- SA1
+0855- SA2
+085D- SA3
+0010- SACMD
+084B- SETADR
+FB5B- TABV
+0879- UPDVCS
+0040- WRCMD
+0866- WRITE
+0869- WTR1
+0871- WTR2  
+#+end_src
 
