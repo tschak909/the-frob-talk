@@ -1108,7 +1108,61 @@ SAVE PROCESS COMPLETE
 - Can load 2K files
   into low ($F000-$F7FF)
   or high ($F800-$FFFF) RAM.
-  
+
+** Loading Cartridge Data with FLOAD
+
+- Off-Screen, we crack open, and read
+  a bunch of Atari ROMs using an EPROM burner
+  and adapter.
+
+- We collect a disk of these cartridges
+  for study.
+
+- All of these carts are in BSAVE format
+
+- We can load them into the Frob with FLOAD
+  and use the Apple Monitor to study them.
+
+- Disk Catalog
+
+#+begin_src
+]CATALOG
+
+DISK VOLUME 254
+
+ B 010 AIR-SEA BATTLE                
+ B 018 ATLANTIS                      
+ B 018 COMBAT                        
+ B 018 EARTH DIES SCREAMING          
+ B 018 FAST EDDIE                    
+ B 010 OUTLAW                        
+ B 018 PITFALL                       
+ B 018 RIVER RAID                    
+ B 018 TURMOIL                       
+ B 010 VIDEO OLYMPICS                
+ B 018 WORM WAR I                    
+ B 018 ADVENTURE                     
+ B 018 DONKEY KONG                   
+ B 018 HOME RUN                      
+ B 010 KABOOM                        
+ B 018 KEYSTONE KAPERS               
+ B 010 NIGHT DRIVER                  
+ B 018 SPACE JOCKEY                  
+ B 010 BASKETBALL                    
+ B 018 BERZERK                       
+ B 010 BOWLING                       
+ B 018 BUMPER BASH                   
+ B 010 CANYON BOMBER                 
+ B 018 CHALLENGE OF NEXAR            
+ B 018 DEFENDER                      
+ B 018 FANTASTIC VOYAGE              
+ B 010 FLAG CAPTURE                  
+ B 018 FLASH GORDON                  
+ B 018 MEGAMANIA                     
+ B 018 MISSILE COMMAND               
+ B 018 SPACEMASTER X-7               
+#+end_src
+
 * Writing FROBBLE tool for Drawing Player Graphics
 
 - Frobco provided source code for all tools
