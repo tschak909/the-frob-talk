@@ -1163,6 +1163,78 @@ DISK VOLUME 254
  B 018 SPACEMASTER X-7               
 #+end_src
 
+*** Example 1: Pitfall
+
+- Loading PITFALL.
+  We RUN FLOAD
+  
+#+begin_src
+]RUN FLOAD  
+#+end_src 
+
+- Specify Frob slot #1
+
+#+begin_src
+PROGRAM TO LOAD THE FROB
+
+
+WHAT SLOT IS THE FROB IN?1
+#+end_src
+
+- We specify PITFALL
+
+#+begin_src
+ENTER NAME OF FILE?PITFALL
+#+end_src
+
+- FLOAD gives opportunity to insert disk with ROMs
+
+#+begin_src
+READY FOR DISK LOAD(Y/N)?Y
+#+end_src
+
+- ROM loads into $8000
+
+- It asks whether it's a 4K file, to determine
+  the starting destination address.
+
+#+begin_src
+IS IT A 4K FILE?Y
+DOWNLOAD PROCESS COMPLETE
+
+]
+#+end_src 
+
+- FLOAD sets Control of Frob RAM to VCS
+
+- We turn on VCS, and Pitfall is running.
+
+- We can look in Monitor and see ROM loaded at $8000
+
+- We can switch pages using control register and look in Frob RAM
+
+*** Example 2: Combat
+
+- Same exercise through FLOAD, except, we load a 2K ROM.
+
+#+begin_src
+PROGRAM TO LOAD THE FROB
+
+
+WHAT SLOT IS THE FROB IN?1
+ENTER NAME OF FILE?COMBAT
+READY FOR DISK LOAD (Y/N)?Y
+
+IS IT A 4K FILE (Y/N)?N
+LOAD TO HIGH OR LOW MEMORY (H/L)
+?L
+DOWNLOAD PROCESS COMPLETE
+#+end_src
+
+- Combat is available
+  both at $8000
+  and at top of Frob memory in page 0
+  
 * Writing FROBBLE tool for Drawing Player Graphics
 
 - Frobco provided source code for all tools
