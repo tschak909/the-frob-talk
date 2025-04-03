@@ -1,0 +1,1 @@
+It's an interesting question. I don't have complete listings, but I do have some notes which helped. For HMP0, HMP1, I used PL0SHFT, PL1SHFT. For RESP0, RESP1, I used PL0POS and PL0POS. For HMOVE, I used HSYNC. For color registers, I used PL0COLL, PL1COLL. For missile enables, rather than ENAM0, ENAM1, I used PL0M, PL1M.
