@@ -2062,3 +2062,157 @@ FB5B- TABV
  1050  CALL PM + 22
  1060  RETURN 
 #+end_src 
+
+* Basic Development Workflow
+
+- Write Program Code
+
+- Assemble it
+
+- Load it into Frob with FLOAD
+
+- Test it.
+
+- Repeat
+
+** Scaffold
+
+- Take bits from reverse engineering combat
+
+- Display a stable frame
+
+- Background color
+
+*** SCAFFOLD listing
+
+#+begin_src
+
+1000 **
+1010 ** VCS KERNEL SCAFFOLD
+1020 **
+1030        .OR $F000
+1040        .TA $8000
+1050        .TF SCAFFOLD.OBJ
+1060        .IN VCS EQUATES
+1100 ** 
+1110 ** RESET, CLEAR ALL
+1120 **
+1130 RSET   SEI
+1140        CLD
+1150        LDX #$FF
+1160        TXS
+1170        LDA #$00
+1180        LDX #$00
+1190 CLOOP  STA $00,X
+1200        DEX
+1210        BNE CLOOP
+1300 **
+1310 ** TOP OF FRAME, VSYNC
+1320 **
+1330 VS     LDA #$02
+1340        STA WSYNC    ; WAIT 1 LINE BEFORE...
+1350        STA VBLANK   ; ENABLING VBLANK
+1360        STA WSYNC    ; WAIT 3 MORE
+1370        STA WSYNC    ; LINES...
+1380        STA WSYNC    ; ...
+1390        STA VSYNC    ; START VSYNC
+1400        STA WSYNC    ; THREE MORE
+1410        STA WSYNC    ; LINES...
+1420        LDA #$00     ; BEFORE WE...
+1430        STA WSYNC    ; DISABLE...
+1440        STA VSYNC    ; VSYNC!
+1450 **
+1460 ** WE ARE NOW AT TOP OF FRAME...
+1470 ** WE CAN DO LOGIC HERE, AND/OR
+1480 ** WAIT FOR A TIMER TO COMPLETE.
+1490 **
+1500        LDA #43      ; SET TIMER
+1510        STA TIM64T   ; 43*64CYCLES
+1520 VE     LDA INTIM    ; R WE DONE YET?
+1530        BNE VE       ; NOPE. WAIT.
+1600 **
+1610 ** WE SHOULD NOW BE IN VISIBLE
+1620 ** FRAME, START DISPLAYING STUFF
+1630 **
+1640 DSPLY  LDA #$00     ; TURN OFF
+1650        STA WSYNC    ; ...
+1660        STA VBLANK   ; VBLANK
+1670        LDA #$94     ; SET LIGHT BLUE
+1680        STA COLUBK   ; TO BKG COLR
+1690        LDX #$EC     ; SCAN CTR
+1700 DLOOP  STA WSYNC    ; WAIT 4 NXT LINE
+1710        DEX          ; DECREMENT LN
+1720        BNE DLOOP    ; DONE? NO.
+1770        JMP VS       ; BACK TO TOP
+
+#+end_src
+
+*** Load into FLOAD
+
+- Load using FLOAD
+
+- Set RESET vector using Apple monitor
+
+- Transfer control to FROB.
+
+* The Bi-directional ports
+
+- One 2-bit port for status
+  Uses bits 6 and 7 to indicate which
+  direction is ready for other side to read
+
+  - For Apple2, this is $C0x0, e.g. slot 2 is $C0A0
+
+  - The VCS side is $FFF1
+
+| Bit | Description           |
+|-----+-----------------------|
+| 0-5 | Unused, float         |
+|   6 | Apple2 ready for byte |
+|   7 | VCS ready for byte    |
+
+- One 8-bit port for data.
+
+  - For apple2, this is $C0x1, e.g. slot 2 is $C0A1
+
+  - Since the VCS lacks R/W, this port must be bifurcated
+    to two addresses:
+
+    | Address | Description      |
+    |---------+------------------|
+    | $FFF0   | Write to Apple2  |
+    | $FFF2   | Read from Apple2 |
+
+** Modifying Scaffold to show operation of Data port
+
+- Modify Line 1670 to load COLUBK from $FFF2
+
+#+begin_src
+
+1670        LDA $FFF2      ; READ FROM DATA PORT
+
+#+end_src 
+
+- Use FLOAD to load into RAM
+
+- Set RESET to F000
+
+#+begin_src
+  * C0A0: 0F
+  
+  * C2FC: 00 F0
+#+end_src 
+
+- Turn on Bi-Directional port
+
+#+begin_src
+  * C0A0: 30
+#+end_src
+
+- Change background color
+  by altering data port
+
+#+begin_src
+  * C0A1: 23
+#+end_src
+
