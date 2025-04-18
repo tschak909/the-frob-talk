@@ -2357,26 +2357,276 @@ FB5B- TABV
 
 - Input Parameter 3: # of bytes to write (0-255)
 
-- Input Parameter n: Byte to write.
+- Input Parameter n: Byte n to write.
 
 - While AMON uses multiple byte write to inject Go Indirect program,
   the user can only write a single byte from the command prompt.
   
 *** Disassemble (List) Memory 'L'
 
+- Roughly equivalent to Apple Monitor
+  
+- Disassembles single instruction at address if no length is provided
+
+#+begin_src
+  >F000L
+  F000:78        SEI
+#+end_src
+
+- Disassembles range of instructions if range provided.
+
+#+begin_src
+  >F000L10
+  F000:78        SEI
+  F001:D8        CLD
+  F002:A2 FF     LDX #$FF
+  F004:9A        TXS
+  F005:A9 00     LDA #$00
+  F007:A2 00     LDX #$00
+  F009:95 00     STA $00,X
+  F00B:CA        DEX
+  F00C:D0 FB     BNE $F009
+  F00E:A9 05     LDA #$05
+  >
+#+end_src
+
+- If 'L' is specified, without an address, 30 bytes
+  from the last location listed will be displayed.
+  
 *** Register Display 'R'
+
+- Displays the contents of each register, persisted after a breakpoint.
+
+- Only makes sense after a break point.
+
+#+begin_src
+  >F01CP
+  >F000G
+  WARNING -- STACK POINTER SET AT 0000
+  DO YOU WISH TO WAIT FOR A BREAK? (Y/N)Y
+  WAITING FOR BREAK POINT
+  BREAK POINT ENCOUNTERED
+  >R
+
+  A=05 X=00 Y=00 S=FF P=34
+  >
+#+end_src
+
+- P = Hex value of processor flags
+  
+| Bit | Description      |
+|-----+------------------|
+|   7 | Negative         |
+|   6 | Overflow         |
+|   5 | ---              |
+|   4 | BRK              |
+|   3 | Interrupt Masked |
+|   2 | Zero             |
+|   1 | Carry            |
 
 *** Modify Registers 'M'
 
+- Modify any 6502 register.
+
+- Only makes sense when reacting to a breakpoint
+
+#+begin_src
+  >M
+  WHICH REGISTER? (A,X,Y,S,P)X
+  NEW VALUE (HEX)=22
+  >R
+
+  A=05 X=22 Y=00 S=FF P=34
+  >
+#+end_src
+
 *** Go from Address or Breakpoint 'G'
+
+- Tells the VCS to start executing code.
+
+- Two modes
+  * Go from Breakpoint (G)
+  * Go from Address (xxxxG)
+
+- If an address is specified, program execution starts here.
+
+- You can ask to wait for a break, if no, control is returned to the monitor
+
+- You can modify ROM, but you can't modify RAM or registers whilst VCS is running.
+  It will hang.
+  You can power cycle the VCS, and type RESTORE to restore communication.
+  
+#+begin_src
+  >F000G
+  WARNING -- STACK POINTER SET AT 00
+  DO YOU WISH TO WAIT FOR A BREAK? (Y/N)N
+  >RESTORE
+  COMMUNICATION IS NOW ON
+  TURN THE VCS OFF AND ON TO GET TO FMON
+  >
+#+end_src 
+
+- If a breakpoint is placed with P, and you wish to wait for a break,
+  G will pause AMON until the breakpoint is reached.
+
+#+begin_src
+  >F000L16
+  F000:78        SEI
+  F001:D8        CLD
+  F002:A2 FF     LDX #$FF
+  F004:9A        TXS
+  F005:A9 00     LDA #$00
+  F007:A2 00     LDX #$00
+  F009:95 00     STA $00,X
+  F00B:CA        DEX
+  F00C:D0 FB     BNE $F009
+  F00E:A9 05     LDA #$05
+  F010:85 82     STA $82
+  F012:85 84     STA $84
+  F014:85 86     STA $86
+  >F00EP
+  >F000G
+  WARNING -- STACK POINTER SET AT 00
+  DO YOU WISH TO WAIT FOR A BREAK? (Y/N)Y
+  WAITING FOR BREAK POINT
+  BREAK POINT ENCOUNTERED
+  >80.80
+  0080:00 00 00 00 00 00 00 00
+  0088:00 00 00 00 00 00 00 00
+  0090:00 00 00 00 00 00 00 00
+  0098:00 00 00 00 00 00 00 00
+  00A0:00 00 00 00 00 00 00 00
+  00A8:00 00 00 00 00 00 00 00
+  00B0:00 00 00 00 00 00 00 00
+  00B8:00 00 00 00 00 00 00 00
+  00C0:00 00 00 00 00 00 00 00
+  00C8:00 00 00 00 00 00 00 00
+  00D0:00 00 00 00 00 00 00 00
+  00D8:00 00 00 00 00 00 00 00
+  00E0:00 00 00 00 00 00 00 00
+  00E8:00 00 00 00 00 00 00 00
+  00F0:00 00 00 00 00 00 00 00
+  00F8:00 00 00 00 00 00 00 00
+#+end_src
+
+- If G is done without an address,
+  execution will continue from the breakpoint.
+
+#+begin_src
+  >G
+  DO YOU WISH TO WAIT FOR A BREAK? (Y/N)N
+  >
+#+end_src
 
 *** Place Breakpoint 'P'
 
+- Allows you to place a breakpoint at given address
+
+#+begin_src
+  >F00EP
+  >
+#+end_src
+
+- Only one breakpoint can be placed at a time.
+
+- Internally, AMON places a BRK statement there.
+  And saves the three bytes starting there
+  for safe keeping. The shadow copy is unaffected.
+
+- If you wish to set the breakpoint somewhere else,
+  use the 'K' command to remove the previous one
+  before using the 'P' command again.
+  
 *** Kill Breakpoint 'K'
+
+- Removes (kills) the previously set break-point set by the 'P' command.
+  Restores the instructions saved by AMON into the running FROB memory.
 
 *** Start target software 'S'
 
+- Sets Frob memory under VCS control ($10 in control register)
+
+- Typically must set the reset vector if FMON has been loaded.
+
+- You'll need to power cycle the VCS.
+  
+#+begin_src
+  >FFFC<00
+
+  FFFC:00
+
+  >FFFD<F0
+
+  FFFD:F0
+
+  >S
+  FROB MEMORY NOW UNDER VCS CONTROL
+  (COMMUNICATION WITH FMON IS TURNED OFF)
+  PLEASE POWER UP THE VCS TO START IT
+  >
+#+end_src 
+
 *** Halt 'H'
+
+- Switches control of FROB memory to Apple2 ($00 in control register)
+
+- Re-enter FMON with RESTORE
+
+#+begin_src
+  >H
+  FROB MEMORY NOW UNDER APPLE CONTROL
+  >
+#+end_src
 
 *** RESTORE communication
 
+- Sets control to VCS, while turning on bi-directional port. ($30 in control register)
+
+- Does not change RESET vector.
+
+- If FMON is loaded, it will let you know to restart the VCS.
+  
+#+begin_src
+  >RESTORE
+  COMMUNICATION IS NOW ON
+  TURN THE VCS OFF AND ON TO GET TO FMON
+#+end_src
+
+** FMON In Detail
+
+- FMON runs on the VCS
+
+- Minimal logic:
+
+ + RESET Entry
+ + IRQ (BRK) Vector
+ + Command Processing
+ + Comm Package
+ + Command Routines
+
+- Does not maintain a display kernel at all.
+  
+*** RESET Entry
+
+- Set up stack pointer (this doesn't get passed back to AMON immediately though)
+
+- Clear the receive buffer
+
+- Fall into Command Loop
+
+#+begin_src
+FF52:           86 RESTART EQU  *
+FF52:A2 FF      87         LDX  #$FF      ; SETUP STACK POINTER
+FF54:9A         88         TXS
+FF55:D8         89         CLD            ; CLEAR DECIMAL MODE
+FF56:AD F2 FF   90         LDA  RDATA     ; CLEAR BUFFER
+FF59:           91 *
+FF59:           92 * FALL INTO COMMAND LOOP
+FF59:           93 *
+#+end_src
+
+*** IRQ (BRK) Vector
+
+- 
+
+** AMON In Detail
