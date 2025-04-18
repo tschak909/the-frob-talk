@@ -2216,3 +2216,167 @@ FB5B- TABV
   * C0A1: 23
 #+end_src
 
+* FMON - The Monitor
+
+- Interactive Debugger for VCS Game Development
+
+- AMON which runs on Apple2
+
+- FMON runs on VCS
+
+- Both communicate using Bi-Directional ports
+
+** Starting AMON
+
+- Started by loading AMON on Apple.
+
+- As with all Frob programs, you specify slot # of the Frob
+  so both PMOVE and the bi-directional comms code can work.
+
+- You specify whether to load a binary, and to which hex address.
+
+- You specify whether you wish to load FMON. Most features requre it.
+
+- If FMON is loaded, VCS power cycling is prompted,
+  and FMON is injected into the VCS, with break point near the
+  RAM stack.
+
+- AMON then prompts for commands, until you exit with ^C.
+
+#+begin_src
+  ]RUN FMON
+
+  FROB MONITOR PROGRAM
+  WHAT IS THE FROB SLOT NUMBER (1,7)?2
+  DO YOU WISH TO LOAD A FILE? (Y/N)Y
+  WHAT IS THE FILE NAME?/GAMEDEV/EMBARGO/EMBARGO.0
+  LOAD TO WHAT VCS HEX ADDRESS?F000
+  DO YOU WISH TO USE FMON? (Y/N)Y
+  PLEASE TURN ON VCS AND HIT RETURN
+  SETTING UP...READY
+  >
+#+end_src
+
+** Features
+
+- All commands have common syntax of the first argument, followed by command character, followed by a range.
+  
+#+begin_src
+  >F000.10
+#+end_src
+
+*** Read RAM, ROM, or Registers '.'
+
+- Displays the hex bytes at the specified memory location and range.
+
+- Displays 8 hex values per line.
+
+- If value is ROM, it's read from shadow area.
+-- Anything else, a READ MEMORY FMON command is sent to VCS for each byte.
+
+- Display first 16 bytes of EMBARGO code
+  
+#+begin_src
+  >F000.10
+
+  F000: 78 D8 A2 FF 9A A9 00 A2
+  F008: 00 95 00 CA D0 FB A9 05
+
+  >
+#+end_src
+
+- Take a look at current value of RIOT timer (INTIM)
+
+#+begin_src
+
+  >0284
+
+  0284: DE
+
+  >0284
+
+  0284: 81
+  
+#+end_src
+
+**** READ MEMORY (FMON) Details
+
+- Command Byte $10
+
+- Input Parameter 1: HIGH Byte of address
+
+- Input Parameter 2: LOW Byte of address
+
+- Input Parameter 3: # of bytes to read (0-255)
+
+- All addresses are 16 bits
+- Can only read up to 255 bytes in one call
+- Must be called to read at least 1 byte
+
+- AMON issues multiple READ MEMORY calls in multiples of 255 bytes
+  as needed.
+  
+*** Alter RAM, ROM, or Registers '<'
+
+- Writes the specified byte argument to the specified address.
+
+- Only one byte at a time.
+
+- Writes to ROM are written to shadow memory and then sent to FROB.
+
+- Change P0 score position in Embargo at $F146
+
+#+begin_src
+  >F146<00
+
+  F146:00
+
+  >F000G
+  WARNING -- STACK POINTER SET AT 00
+  DO YOU WISH TO WAIT FOR A BREAK? (Y/N)N
+  >RESTORE
+  COMMUNICATION IS NOW ON
+  TURN THE VCS OFF AND ON TO GET TO FMON
+  >F146<37
+
+  F146:37
+
+  >F000G
+  WARNING -- STACK POINTER SET AT 00
+  DO YOU WISH TO WAIT FOR A BREAK? (Y/N)N
+  >
+#+end_src
+
+**** WRITE MEMORY (FMON) Details
+
+- Command Byte $20
+
+- Input Parameter 1: HIGH byte of address
+
+- Input Parameter 2: LOW byte of address
+
+- Input Parameter 3: # of bytes to write (0-255)
+
+- Input Parameter n: Byte to write.
+
+- While AMON uses multiple byte write to inject Go Indirect program,
+  the user can only write a single byte from the command prompt.
+  
+*** Disassemble (List) Memory 'L'
+
+*** Register Display 'R'
+
+*** Modify Registers 'M'
+
+*** Go from Address or Breakpoint 'G'
+
+*** Place Breakpoint 'P'
+
+*** Kill Breakpoint 'K'
+
+*** Start target software 'S'
+
+*** Halt 'H'
+
+*** RESTORE communication
+
