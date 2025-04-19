@@ -2596,6 +2596,10 @@ FB5B- TABV
 
 - FMON runs on the VCS
 
+- Tiny. Less than 256 bytes
+
+- Lives in last page of ROM space.
+  
 - Minimal logic:
 
  + RESET Entry
@@ -2603,12 +2607,13 @@ FB5B- TABV
  + Command Processing
  + Comm Package
  + Command Routines
-
+ + Subroutines
+   
 - Does not maintain a display kernel at all.
   
-*** RESET Entry
+*** RESET Entry ($FF52)
 
-- Set up stack pointer (this doesn't get passed back to AMON immediately though)
+- Set up stack pointer (this doesn't get passed back to AMON immediately, though)
 
 - Clear the receive buffer
 
@@ -2625,8 +2630,218 @@ FF59:           92 * FALL INTO COMMAND LOOP
 FF59:           93 *
 #+end_src
 
-*** IRQ (BRK) Vector
+*** IRQ (BRK) Vector ($FF59)
 
-- 
+- How breakpoints are implemented
+
+- Straight into command loop
+
+*** Command loop (processing)
+
+- Handles grabbing command byte
+
+- Compares and jumps as needed.
+
+| Cmd Byte | Description   |
+|----------+---------------|
+| $10      | Read Mem      |
+| $20      | Write Mem     |
+| $30      | Go from Break |
+| $40      | Go Indirect   |
+
+#+begin_src
+FF59:           94 *
+FF59:           95 * THIS IS THE COMMAND LEVEL
+FF59:           96 *
+FF59:20 A1 FF   97 CI      JSR  RBA       ; GET A POSSIBLE COMMAND BYTE
+FF5C:C9 10      98         CMP  #$10      ; DO WE READ MEM?
+FF5E:F0 5B      99         BEQ  RM        ; IF SO DO IT
+FF60:C9 20     100         CMP  #$20      ; DO WE WRITE MEM?
+FF62:F0 66     101         BEQ  WM        ; IF SO DO IT
+FF64:C9 30     102         CMP  #$30      ; DO WE GO FROM BREAK?
+FF66:F0 07     103         BEQ  GO        ; IF SO DO IT
+FF68:C9 40     104         CMP  #$40      ; DO WE JUMP INDIRECT?
+FF6A:D0 ED     105         BNE  CI        ; IF NOT KEEP LOOPING 
+FF6C:4C D9 FF  106         JMP  GOI       ; ELSE DO THE JMP INDIRECT
+#+end_src
+
+*** Comms Package
+
+- Performs communication to and from the Apple2
+
+- Uses WDATA ($FFF0) and RDATA ($FFF2) to transfer data.
+  These are the same 8-bit register, but bifurcated to deal with a lack of R/W signal.
+
+- Uses PSTAT ($FFF1) to indicate whether the VCS can transmit (bit 7),
+  or whether the Apple2 can trasmit (bit 6).
+
+- Using these bits means that a BIT instruction can quickly test for readiness.
+
+#+begin_src
+FF98:          137 *
+FF98:          138 * HERE IS THE COMM PACKAGE
+FF98:          139 *
+FF98:2C F1 FF  140 WBA     BIT  PSTAT     ; GET READY TO WRITE A BYTE TO THE APPLE
+FF9B:10 FB     141         BPL  WBA       ; WAIT FOR WRITE OK FLAG
+FF9D:8D F0 FF  142         STA  WDATA     ; THEN DO IT AND RETURN
+FFA0:60        143         RTS
+FFA1:          144 *
+FFA1:          145 *
+FFA1:2C F1 FF  146 RBA     BIT  PSTAT     ; GET READY TO READ SOMETHING
+FFA4:50 FB     147         BVC  RBA       ; WAIT FOR READ READY BIT
+FFA6:AD F2 FF  148         LDA  RDATA     ; READ THE DATA
+FFA9:60        149         RTS              ; THEN DONE
+FFAA:          150 *
+FFAA:          151 *
+FFAA:          152 *
+#+end_src
+
+- In each case, the routine blocks until the appropriate ready bit is 1
+
+- And then the resulting value is either loaded or stored.
+
+*** Command Routines
+
+- Processed in the CI routine via a stack of compares.
+
+- Any invalid command bytes result in a loop to read another command byte.
+
+**** Read Memory
+
+- Send bytes at address to Apple2.
+  
+- Call GETADR subroutine to get address.
+  X register contains length.
+  RBASE set to point to the beginning of source address.
+
+- In a loop, grab next byte.
+
+- Call WBA in comms package to write out next byte.
+
+- Move X and Y indices for next byte
+
+- Loop until done.
+  
+#+begin_src
+FFBB:          163 *
+FFBB:          164 *
+FFBB:          165 *
+FFBB:          166 * ROUTINE TO READ OUT MEMORY
+FFBB:20 AA FF  167 RM      JSR  GETADR    ; SET UP ADDRESS AND COUNT
+FFBE:B1 F8     168 RM1     LDA  (RBASE),Y ; GET VALUE
+FFC0:20 98 FF  169         JSR  WBA
+FFC3:C8        170         INY            ; MOVE INDEX
+FFC4:CA        171         DEX            ; DECREMENT COUNT
+FFC5:D0 F7     172         BNE  RM1       ; LOOP TILL DONE
+FFC7:4C 59 FF  173         JMP  CI        ; DONE
+#+end_src
+
+**** Write Memory
+
+- Receive bytes to VCS address from Apple2
+
+- Call GETADR subroutine to get address
+  X register contains length
+  RBASE set to point of destination address
+
+- In a loop, read byte from apple2,
+
+- Store byte in VCS
+
+- Move X and Y indices for next byte
+
+- Loop until done.
+
+#+begin_src
+FFCA:          174 *
+FFCA:          175 *
+FFCA:          176 *
+FFCA:          177 * ROUTINE TO WRITE MEMORY
+FFCA:          178 * 
+FFCA:20 AA FF  179 WM      JSR  GETADR    ; GO GET ADDRESS AND COUNT
+FFCD:20 A1 FF  180 WM1     JSR  RBA       ; GO GET BYTE
+FFD0:91 F8     181         STA  (RBASE),Y ; STORE IT
+FFD2:C8        182         INY            ; MOVE INDEX
+FFD3:CA        183         DEX            ; DECREMENT COUNT
+FFD4:D0 F7     184         BNE  WM1       ; LOOP TILL DONE
+FFD6:4C 59 FF  185         JMP  CI        ; DONE
+#+end_src
+
+**** Go from Break
+
+- If you use 'G' without an address parameter.
+  
+- Happens while VCS has processed a breakpoint.
+
+- Restore processor flags to VCS.
+
+- Restore the saved memory state back into VCS.
+
+- Restore Stack pointer
+
+- Restore Y, X, and A.
+
+- Restore N and Z flags.
+
+- Jump back to the breakpoint and continue.
+  
+#+begin_src
+FF6F:          107 *
+FF6F:          108 * ROUTINE TO RESTORE STATE AFTER BREAK POINT AND JMP
+FF6F:          109 * BACK INTO THE VCS PROGRAM
+FF6F:          110 *
+FF6F:          111 *
+FF6F:AD F4 FF  112 GO      LDA  F1REST    ; GET PART 1 OF THE FLAG RESTORE PROCESS
+FF72:48        113         PHA            ; PUT IN FLAGS BY WAY OF STACK
+FF73:28        114         PLP
+FF74:          115 *
+FF74:A2 20     116         LDX  #256-RSAVE ; LOOP COUNT FOR RAM STUFF BACK
+FF76:AD F1 FF  117 GO1     LDA  PSTAT     ; LOOK AT STATUS
+FF79:29 40     118         AND  #$40      ; SEE IF STUFF THERE 
+FF7B:F0 F9     119         BEQ  GO1       ; IF NOT THEN WAIT
+FF7D:AD F2 FF  120         LDA  RDATA     ; THEN GET VALUE
+FF80:95 DF     121         STA  RSAVE-1,X ; PUT BACK IN RAM
+FF82:CA        122         DEX             ; MOVE TO NEXT
+FF83:D0 F1     123         BNE  GO1       ; LOOP
+FF85:          124 *
+FF85:          125 *
+FF85:AE F9 FF  126         LDX  SREST     ; GET VALUE IN X TO RESTORE STACK POINTER
+FF88:9A        127         TXS            ; RESTORE STACK POINTER
+FF89:AC F8 FF  128         LDY  YREST     ; GET VALUE TO RESTORE Y
+FF8C:AE F7 FF  129         LDX  XREST     ; GET VALUE TO RESTORE X
+FF8F:AD F6 FF  130         LDA  AREST     ; GET VALUE TO RESTORE A
+FF92:EE F5 FF  131         INC  F2REST    ; RESTORE Z AND N FLAGS
+FF95:          132 * NOW ALL IS RESTORED SO JMP BACK
+FF95:4C 00 FF  133 BJUMP   JMP  BREAK
+#+end_src
+
+**** Go Indirect
+
+- If you use 'G' with an address parameter.
+  
+- Grab the two address bytes via comms
+
+- Then jump indirect to said address.
+  
+#+begin_src
+FFD9:          186 *
+FFD9:          187 *
+FFD9:          188 *
+FFD9:          189 * ROUTINE TO TAKE A JMP INDIRECT
+FFD9:          190 *  (USED TO PUT THINGS TO SLEEP)
+FFD9:20 A1 FF  191 GOI     JSR  RBA       ; GET HIGH ORDER JMP ADDR
+FFDC:85 F9     192         STA  RBASE+1   ; PUT IN POINTER HIGH
+FFDE:20 A1 FF  193         JSR  RBA       ; GET LOW ORDER JMP ADDR
+FFE1:85 F8     194         STA  RBASE     ; PUT IN POINTER LOW
+FFE3:6C F8 00  195         JMP  (RBASE)   ; GO THERE
+#+end_src
+
+
+*** Subroutines
+
+- Common bits of code used in the command routines.
+
+
 
 ** AMON In Detail
+
