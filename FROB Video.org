@@ -147,6 +147,9 @@ we sold PPC, then I left and started other companies.
 
 - Most complex is in-circuit-emulator (ICE) hardware
   that replaces CPU on target device.
+  Such as HP 1611A with Personality module (10621A for 6502)
+
+- The Frob is a ROM simulator, rather than an ICE.
   
 ** Examples of Microprocessor Development Systems
 
@@ -875,17 +878,17 @@ F1C2:85 1B     422 P1DSP   STA  P1IMAG    ; DISPLAY PLAYER1 IMAGE
 #+begin_src
   * C200: 78 D8 A2 FF 9A E8 8A 95 00 E8
   
-  * C10A: D0 FB A9 00 85 02 85 02 A9 02
+  * C20A: D0 FB A9 00 85 02 85 02 A9 02
   
-  * C114: 85 02 85 00 85 02 85 02 85 02
+  * C214: 85 02 85 00 85 02 85 02 85 02
 
-  * C11E: A9 00 85 02 85 00 A9 02 85 02
+  * C21E: A9 00 85 02 85 00 A9 02 85 02
 
-  * C128: A0 29 85 02 88 D0 FB 85 02 84 02
+  * C228: A0 29 85 02 88 D0 FB 85 02 84 02
 
-  * C133: A0 C0 85 02 84 09 88 D0 F9 85 09
+  * C233: A0 C0 85 02 84 09 88 D0 F9 85 09
 
-  * C13E: A0 16 88 85 02 D0 FB 4C 0C F0
+  * C23E: A0 16 88 85 02 D0 FB 4C 0C F0
 #+end_src
 
 - We need to switch to the very last page ($FF00-$FFFF)
@@ -2607,7 +2610,7 @@ FB5B- TABV
  + Command Processing
  + Comm Package
  + Command Routines
- + Subroutines
+ + GetAdr Subroutine
    
 - Does not maintain a display kernel at all.
   
@@ -2836,12 +2839,61 @@ FFE1:85 F8     194         STA  RBASE     ; PUT IN POINTER LOW
 FFE3:6C F8 00  195         JMP  (RBASE)   ; GO THERE
 #+end_src
 
+*** GETADR Subroutine
 
-*** Subroutines
+- Grab a 16 bit address and count using RBA
 
-- Common bits of code used in the command routines.
+- received Address goes into RBASE and RBASE+1
 
-
+- Count goes into X register
+  
+#+begin_src
+FFAA:          152 *
+FFAA:          153 * ROUTINE TO SET UP A 16 BIT ADDRESS AND 8 BIT COUNT 
+FFAA:          154 *
+FFAA:20 A1 FF  155 GETADR  JSR  RBA       ; GO GET HIGH ADDRESS PART
+FFAD:85 F9     156         STA  RBASE+1   ; PUT INTO BASE POINTER
+FFAF:20 A1 FF  157         JSR  RBA       ; GET LOWER PART
+FFB2:85 F8     158         STA  RBASE     ; PUT IN POINTER
+FFB4:20 A1 FF  159         JSR  RBA       ; GET THE LENGTH
+FFB7:AA        160         TAX             ; PUT IN X REG
+FFB8:A0 00     161         LDY  #0        ; USE Y FOR INDEX
+FFBA:60        162         RTS            ; NOW ADDRESS AND COUNT SETUP
+FFBB:          163 *
+#+end_src
 
 ** AMON In Detail
+
+- Runs on Apple2
+
+- Provides Command Interface to Frob and FMON
+
+- Can load any 2K or 4K game binary.
+
+- FMON contains control logic. AMON contains display logic.
+
+*** Important Variables
+
+- S%(32) - Stored State for Registers
+
+- BP% - Boolean for "Breakpoint Hit?"
+
+- PG%(18) - Sleep routine stored at $E0 in VCS RAM.
+
+- BIT%(8) - Used to hold one byte's worth of bits (e.g. for Processor flags)
+
+- FM% - boolean to indicate whether FMON is loaded onto VCS.
+
+- OCODE%(255) - MID$ position into OPCODES$ for a given opcode byte, used for 'L'
+
+- ACODE%(255) - maps opcode byte to an ON x GOTO, to handle different 6502 addressing modes, used for 'L'
+
+- PM% - Constant to address of PMOVE in apple2 memory ($0300)
+
+- BUF$ - a 4K Buffer created using M$ BASIC string techniques.
+
+- FSLOT% - FROB Slot #
+
+- DEV = Pointer to Frob control registers
+
 
